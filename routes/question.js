@@ -67,7 +67,6 @@ router.post('/generate/:chapterId', async (req, res) => {
 
     // Generate questions using OpenAI
     const generated = await getOpenAIQuestions(chapterContent.content, chapterTitle);
-    console.log(generated)
 
     // Map and prepare questions for saving
     // const toSave = generated.slice(0, 40).map(q => ({

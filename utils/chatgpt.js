@@ -1,9 +1,21 @@
 const OpenAI = require('openai');
 require('dotenv').config({ path: './env/.env' });
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
+// Lazy initialization - only create client when needed
+let openai = null;
+
+function getOpenAIClient() {
+  if (!openai) {
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      throw new Error('OPENAI_API_KEY is not set in environment variables. Please add it to backend/env/.env');
+    }
+    openai = new OpenAI({
+      apiKey: apiKey,
+    });
+  }
+  return openai;
+}
 
 /**
  * Generate a response using ChatGPT API
@@ -22,7 +34,8 @@ async function generateResponse(systemPrompt, userPrompt, options = {}) {
   } = options;
 
   try {
-    const response = await openai.chat.completions.create({
+    const client = getOpenAIClient();
+    const response = await client.chat.completions.create({
       model,
       messages: [
         { role: 'system', content: systemPrompt },
