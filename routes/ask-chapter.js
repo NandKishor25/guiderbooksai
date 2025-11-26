@@ -6,25 +6,25 @@ const { generateChapterResponse } = require('../utils/chatgpt');
 // POST /api/ask-chapter - Ask questions about a specific chapter
 router.post('/', async (req, res) => {
   try {
-    const { question, chapterId, chapterContent } = req.body;
+    const { question, chapterId, chapterContent, language } = req.body;
 
     if (!question || !chapterId) {
-      return res.status(400).json({ 
-        error: 'Question and chapterId are required' 
+      return res.status(400).json({
+        error: 'Question and chapterId are required'
       });
     }
 
     // Get chapter content from database if not provided
     let content = '';
     let title = '';
-    
+
     if (chapterContent && chapterContent.content) {
       content = chapterContent.content;
       title = chapterContent.title || '';
     } else {
       // Try to find by chapterId field first (for user-friendly IDs)
       let chapter = await Chapter.findOne({ chapterId: chapterId });
-      
+
       // If not found by chapterId, try by ObjectId
       if (!chapter) {
         try {
@@ -33,10 +33,10 @@ router.post('/', async (req, res) => {
           // Invalid ObjectId format, continue with null
         }
       }
-      
+
       if (!chapter) {
-        return res.status(404).json({ 
-          error: 'Chapter not found' 
+        return res.status(404).json({
+          error: 'Chapter not found'
         });
       }
       content = chapter.content;
@@ -44,14 +44,14 @@ router.post('/', async (req, res) => {
     }
 
     if (!content) {
-      return res.status(400).json({ 
-        error: 'No chapter content available' 
+      return res.status(400).json({
+        error: 'No chapter content available'
       });
     }
 
-    const answer = await generateChapterResponse(question, content, title);
+    const answer = await generateChapterResponse(question, content, title, language);
 
-    res.json({ 
+    res.json({
       answer,
       chapterTitle: title,
       question,
@@ -60,21 +60,21 @@ router.post('/', async (req, res) => {
 
   } catch (error) {
     console.error('Error in ask-chapter route:', error);
-    
+
     if (error.message.includes('rate limit')) {
-      return res.status(429).json({ 
-        error: 'API rate limit exceeded. Please try again later.' 
-      });
-    }
-    
-    if (error.message.includes('API configuration error')) {
-      return res.status(500).json({ 
-        error: 'OpenAI API configuration error' 
+      return res.status(429).json({
+        error: 'API rate limit exceeded. Please try again later.'
       });
     }
 
-    res.status(500).json({ 
-      error: error.message || 'Failed to process your question. Please try again.' 
+    if (error.message.includes('API configuration error')) {
+      return res.status(500).json({
+        error: 'OpenAI API configuration error'
+      });
+    }
+
+    res.status(500).json({
+      error: error.message || 'Failed to process your question. Please try again.'
     });
   }
 });
@@ -83,10 +83,10 @@ router.post('/', async (req, res) => {
 router.get('/:chapterId', async (req, res) => {
   try {
     const { chapterId } = req.params;
-    
+
     // Try to find by chapterId field first (for user-friendly IDs)
     let chapter = await Chapter.findOne({ chapterId: chapterId });
-    
+
     // If not found by chapterId, try by ObjectId
     if (!chapter) {
       try {
@@ -95,10 +95,10 @@ router.get('/:chapterId', async (req, res) => {
         // Invalid ObjectId format, continue with null
       }
     }
-    
+
     if (!chapter) {
-      return res.status(404).json({ 
-        error: 'Chapter not found' 
+      return res.status(404).json({
+        error: 'Chapter not found'
       });
     }
 
@@ -111,8 +111,8 @@ router.get('/:chapterId', async (req, res) => {
 
   } catch (error) {
     console.error('Error fetching chapter:', error);
-    res.status(500).json({ 
-      error: 'Failed to fetch chapter information' 
+    res.status(500).json({
+      error: 'Failed to fetch chapter information'
     });
   }
 });

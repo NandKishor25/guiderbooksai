@@ -5,9 +5,9 @@ const { generateGeneralResponse } = require('../utils/chatgpt');
 
 router.post('/', async (req, res) => {
   try {
-    const { question, chapterId, context } = req.body;
+    const { question, chapterId, context, language } = req.body;
     let chapterContent = '';
-    
+
     if (chapterId) {
       const chapter = await Chapter.findById(chapterId);
       if (chapter) chapterContent = chapter.content;
@@ -20,7 +20,7 @@ router.post('/', async (req, res) => {
       contextToUse = context;
     }
 
-    const answer = await generateGeneralResponse(question, contextToUse);
+    const answer = await generateGeneralResponse(question, contextToUse, language);
     res.json({ answer });
   } catch (err) {
     console.error(err);

@@ -3,11 +3,21 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 
+const compression = require('compression');
+const helmet = require('helmet');
+
 const app = express();
+
+// Security headers
+app.use(helmet());
+
+// Compress responses
+app.use(compression());
+
 const corsOptions = {
-  origin: 'https://Guiderbooksai.netlify.app', 
+  origin: 'https://guiderbooksai.netlify.app',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
- 
+
 };
 app.use(cors(corsOptions));
 

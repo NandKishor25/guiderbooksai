@@ -50,20 +50,20 @@ async function generateResponse(systemPrompt, userPrompt, options = {}) {
     return response.choices[0].message.content;
   } catch (error) {
     console.error('OpenAI API Error:', error);
-    
+
     // Handle specific OpenAI errors
     if (error.code === 'insufficient_quota' || error.status === 429) {
       throw new Error('API rate limit exceeded. Please try again later.');
     }
-    
+
     if (error.code === 'invalid_api_key') {
       throw new Error('OpenAI API configuration error. Please check your API key.');
     }
-    
+
     if (error.code === 'context_length_exceeded') {
       throw new Error('The content is too long. Please try a shorter question or chapter.');
     }
-    
+
     throw new Error('Failed to generate response. Please try again.');
   }
 }
@@ -73,10 +73,27 @@ async function generateResponse(systemPrompt, userPrompt, options = {}) {
  * @param {string} question - User's question
  * @param {string} chapterContent - Chapter content
  * @param {string} chapterTitle - Chapter title
+ * @param {string} [language='english'] - Language for the response
  * @returns {Promise<string>} The AI's response
  */
-async function generateChapterResponse(question, chapterContent, chapterTitle) {
+async function generateChapterResponse(question, chapterContent, chapterTitle, language = 'english') {
+  let languageInstruction = '';
+  if (language === 'hindi') {
+    languageInstruction = `
+LANGUAGE INSTRUCTION:
+- The user asked in Hindi. You MUST respond in Hindi (Devanagari script).
+- Keep technical terms in English (in brackets) if needed for clarity.
+- Example: "Photosynthesis (प्रकाश संश्लेषण) पौधों द्वारा भोजन बनाने की प्रक्रिया है।"`;
+  } else if (language === 'hinglish') {
+    languageInstruction = `
+LANGUAGE INSTRUCTION:
+- The user asked in Hinglish. You MUST respond in Hinglish (Hindi written in English script).
+- Use a natural, conversational tone suitable for Indian students.
+- Example: "Photosynthesis wo process hai jisse plants apna khana banate hain."`;
+  }
+
   const systemPrompt = `You are an expert teacher and educational assistant. You have access to a specific chapter's content and should answer questions based on that content.
+${languageInstruction}
 
 IMPORTANT GUIDELINES:
 - Base your answers ONLY on the provided chapter content
@@ -110,10 +127,25 @@ Please answer this question based on the chapter content provided above.`;
  * Generate general educational response
  * @param {string} question - User's question
  * @param {string} context - Optional context
+ * @param {string} [language='english'] - Language for the response
  * @returns {Promise<string>} The AI's response
  */
-async function generateGeneralResponse(question, context = '') {
+async function generateGeneralResponse(question, context = '', language = 'english') {
+  let languageInstruction = '';
+  if (language === 'hindi') {
+    languageInstruction = `
+LANGUAGE INSTRUCTION:
+- The user asked in Hindi. You MUST respond in Hindi (Devanagari script).
+- Keep technical terms in English (in brackets) if needed for clarity.`;
+  } else if (language === 'hinglish') {
+    languageInstruction = `
+LANGUAGE INSTRUCTION:
+- The user asked in Hinglish. You MUST respond in Hinglish (Hindi written in English script).
+- Use a natural, conversational tone suitable for Indian students.`;
+  }
+
   const systemPrompt = `You are an expert teacher and educational assistant. You provide clear, detailed explanations on various topics.
+${languageInstruction}
 
 IMPORTANT GUIDELINES:
 - Provide comprehensive, educational explanations

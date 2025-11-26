@@ -50,7 +50,7 @@ Respond ONLY as a JSON array like:
     });
 
     const raw = response.choices[0].message.content;
-   
+
 
     try {
       const parsed = JSON.parse(raw);
@@ -83,7 +83,29 @@ Respond ONLY as a JSON array like:
  *  qa: Array<{ question: string, answer: string }>
  * }>}
  */
-async function getOpenAIAssessment(chapterContent, chapterTitle) {
+/**
+ * Generate a full assessment (MCQs, True/False, Fill-ups, Q&A) from chapter
+ * @param {string} chapterContent
+ * @param {string} chapterTitle
+ * @param {Object} [config] - Configuration for number of questions
+ * @param {number} [config.mcqs=10]
+ * @param {number} [config.trueFalse=10]
+ * @param {number} [config.fillups=10]
+ * @param {number} [config.qa=10]
+ * @returns {Promise<{
+ *  mcqs: Array<{ question: string, options: string[], answer: string }>,
+ *  trueFalse: Array<{ statement: string, answer: boolean }>,
+ *  fillups: Array<{ sentence: string, answer: string }>,
+ *  qa: Array<{ question: string, answer: string }>
+ * }>}
+ */
+async function getOpenAIAssessment(chapterContent, chapterTitle, config = {}) {
+  // Default to 10 if not specified, but allow 0
+  const mcqCount = config.mcqs !== undefined ? config.mcqs : 10;
+  const tfCount = config.trueFalse !== undefined ? config.trueFalse : 10;
+  const fillupCount = config.fillups !== undefined ? config.fillups : 10;
+  const qaCount = config.qa !== undefined ? config.qa : 10;
+
   const prompt = `You are a strict formatter. Create a comprehensive assessment ONLY from the given chapter.
 Title: ${chapterTitle}
 Content: ${chapterContent}
@@ -105,10 +127,11 @@ Return a SINGLE VALID JSON object with EXACTLY these keys and formats:
 }
 
 Rules:
-- 10 MCQs, 10 True/False, 10 Fill-ups, 10 Q&A.
+- ${mcqCount} MCQs, ${tfCount} True/False, ${fillupCount} Fill-ups, ${qaCount} Q&A.
 - Options must be plausible; only one correct answer.
 - Answers must be precise and derivable from the chapter.
-- Do not include any prose, Markdown, or explanation outside the JSON.`;
+- Do not include any prose, Markdown, or explanation outside the JSON.
+- If a count is 0, return an empty array for that category.`;
 
   try {
     const client = getOpenAIClient();

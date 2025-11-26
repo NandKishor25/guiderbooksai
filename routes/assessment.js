@@ -6,7 +6,7 @@ const { getOpenAIAssessment } = require('../utils/openai');
 // POST /api/assessment - Generate assessment from provided chapterId or chapterContent
 router.post('/', async (req, res) => {
   try {
-    const { chapterId, chapterContent } = req.body;
+    const { chapterId, chapterContent, config } = req.body;
 
     let content = '';
     let title = '';
@@ -37,7 +37,7 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'No chapter content available' });
     }
 
-    const assessment = await getOpenAIAssessment(content, title);
+    const assessment = await getOpenAIAssessment(content, title, config);
 
     res.json({
       chapterTitle: title,
