@@ -37,7 +37,7 @@ Respond ONLY as a JSON array like:
   try {
     const client = getOpenAIClient();
     const response = await client.chat.completions.create({
-      model: 'gpt-3.5-turbo',
+      model: 'gpt-4.1-mini',
       messages: [
         {
           role: 'system',
